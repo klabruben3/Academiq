@@ -285,7 +285,7 @@ export default function Dashboard({ modules, scores, onSelectModule }: Props) {
                 }}
                 labelStyle={{ color: "#ffffff80" }}
                 itemStyle={{ color: "#6366f1" }}
-                formatter={(val: number) => [`${val}`, "Load"]}
+                formatter={(val) => [`${val}`, "Load"]}
               />
               <Area
                 type="monotone"
