@@ -5,9 +5,9 @@ export default async function Home() {
   const supabase = await createClient();
 
   const { data: worker, error } = await supabase
-    .from("workers")
-    .select("id, 25")
-    .single();
+    .from("users")
+    .select("id")
+    .single()
 
   if (worker) {
     console.error(worker);
