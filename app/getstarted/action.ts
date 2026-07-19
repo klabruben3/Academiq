@@ -1,5 +1,3 @@
-"use server";
-
 interface User {
   name: string;
   email: string;

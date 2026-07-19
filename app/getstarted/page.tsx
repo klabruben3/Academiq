@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from "react";
 import "./index.css";
+import { signUpWithPassword } from "./action";
 
 /* ─── Icon set ─── */
 
@@ -1378,6 +1379,14 @@ function AuthModal({ open, onClose }: { open: boolean; onClose: () => void }) {
 
   const handleCreateAccount = () => {
     if (noInput || !passwordMatch) return;
+    signUpWithPassword({
+      name,
+      email,
+      university,
+      faculty,
+      yearOfStudy,
+      password: newPasswordV2,
+    });
     setMode("signin");
   };
 
