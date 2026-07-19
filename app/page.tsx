@@ -1,10 +1,21 @@
-"use client";
-
 import { Academiq, LoadingScreen } from "@/components/layout";
-import { useState } from "react";
+import { createClient } from "@/lib/supabase/server";
 
-export default function Home() {
-  const [isAuth, setIsAuth] = useState(false);
+export default async function Home() {
+  const supabase = await createClient();
+
+  const { data: worker, error } = await supabase
+    .from("workers")
+    .select("id, 25")
+    .single();
+
+  if (worker) {
+    console.error(worker);
+  }
+  if (error) {
+    console.log(error);
+  }
+  const isAuth = false;
 
   return <>{isAuth ? <Academiq /> : <LoadingScreen />}</>;
 }
