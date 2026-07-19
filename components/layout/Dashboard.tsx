@@ -16,7 +16,7 @@ import {
   BookOpen,
   ChevronRight,
 } from "lucide-react";
-import type { Module } from "../types";
+import type { Module } from "../../types";
 import {
   buildTimeline,
   getPriorityItems,
@@ -26,15 +26,10 @@ import {
   getSemesterProgress,
   getUpcomingEvents,
   countdownLabel,
-} from "../utils/calculations";
-import {
-  TypeBadge,
-  TYPE_COLORS,
-  TYPE_LABELS,
-  PRIORITY_COLORS,
-  ProgressBar,
-  StatCard,
-} from "./ui";
+} from "../../utils/calculations";
+import { TYPE_COLORS, TYPE_LABELS, PRIORITY_COLORS } from "../ui/constants";
+
+import { TypeBadge, ProgressBar, StatCard } from "../ui";
 
 interface Props {
   modules: Module[];

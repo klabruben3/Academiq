@@ -8,21 +8,21 @@ import {
   ResponsiveContainer,
   Cell,
 } from "recharts";
-import type { Module } from "../types";
+import type { Module } from "@/types";
 import {
   buildTimeline,
   getMonthlyWorkload,
   calculateParticipationMark,
   getDaysUntil,
-} from "../utils/calculations";
-import { StatCard, ProgressBar } from "./ui";
+} from "@/utils/calculations";
+import { StatCard, ProgressBar } from "../ui";
 
 interface Props {
   modules: Module[];
   scores: Record<string, number>;
 }
 
-export default function Analytics({ modules, scores }: Props) {
+export function Analytics({ modules, scores }: Props) {
   const timeline = useMemo(
     () => buildTimeline(modules, scores),
     [modules, scores],

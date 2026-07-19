@@ -13,15 +13,16 @@ import {
   Cell,
 } from "recharts";
 import { Check, Clock, MapPin, BookOpen, Mail, User } from "lucide-react";
-import type { Module, AssessmentComponent } from "../types";
+import type { Module, AssessmentComponent } from "../../types";
 import {
   isExamEligible,
   isOnTrackToPass,
   calculateParticipationMark,
   getDaysUntil,
   countdownLabel,
-} from "../utils/calculations";
-import { TypeBadge, TYPE_COLORS, TYPE_LABELS, ProgressBar } from "./ui";
+} from "../../utils/calculations";
+import { TYPE_COLORS, TYPE_LABELS } from "../ui/constants";
+import { ProgressBar, TypeBadge } from "../ui";
 
 interface Props {
   module: Module;
@@ -44,8 +45,8 @@ export default function ModulePage({
 
   const minRequired = mod.participationFormula.minimumToPass;
   const examAdmissionOk = mod.hasExam
-  ? isExamEligible(mod, scores)
-  : isOnTrackToPass(mod, scores);
+    ? isExamEligible(mod, scores)
+    : isOnTrackToPass(mod, scores);
 
   const assessmentWithScores = mod.assessments.filter(
     (a) => a.date || a.type === "attendance",

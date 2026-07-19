@@ -17,9 +17,9 @@ import {
   isToday,
 } from "date-fns";
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import type { Module } from "../types";
-import { buildTimeline } from "../utils/calculations";
-import { TYPE_COLORS, TYPE_LABELS } from "./ui";
+import type { Module } from "../../types";
+import { buildTimeline } from "../../utils/calculations";
+import { TYPE_COLORS, TYPE_LABELS } from "../ui/constants";
 
 interface Props {
   modules: Module[];

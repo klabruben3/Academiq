@@ -1,5 +1,5 @@
 "use client";
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import {
   LayoutDashboard,
@@ -9,15 +9,30 @@ import {
   ChevronRight,
   Menu,
   X,
+  Bot,
 } from "lucide-react";
 import { MODULES } from "@/data/modules";
-import Dashboard from "@/components/Dashboard";
-import Timeline from "@/components/Timeline";
-import CalendarView from "@/components/CalendarView";
-import Analytics from "@/components/Analytics";
-import ModulePage from "@/components/ModulePage";
 
-type ViewId = "dashboard" | "timeline" | "calendar" | "analytics" | string;
+import { Analytics, WorkspaceConversation } from "@/components/features";
+
+import {
+  Dashboard,
+  Timeline,
+  CalendarView,
+  ModulePage,
+} from "@/components/layout";
+import { ChatMessage } from "@/types";
+import { ModelMessage, ToolCallPart, ToolResultPart } from "ai";
+import { askAI } from "@/components/features/ai/actions/chat";
+import { uid } from "@/lib/helpers";
+
+type ViewId =
+  | "dashboard"
+  | "timeline"
+  | "calendar"
+  | "analytics"
+  | "ai"
+  | string;
 
 const NAV_ITEMS = [
   { id: "dashboard", label: "Dashboard", icon: LayoutDashboard },
@@ -47,18 +62,139 @@ function loadCompleted(): Record<string, boolean> {
 
 export default function Home() {
   const [view, setView] = useState<ViewId>("dashboard");
+  const prevView = useRef<ViewId>("dashboard");
   const [scores, setScores] = useState<Record<string, number>>(loadScores);
   const [completed, setCompleted] =
     useState<Record<string, boolean>>(loadCompleted);
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [typing, setTyping] = useState(false);  
 
-  useEffect(() => {    
+  useEffect(() => {
     localStorage.setItem(SCORES_KEY, JSON.stringify(scores));
   }, [scores]);
 
   useEffect(() => {
     localStorage.setItem(COMPLETED_KEY, JSON.stringify(completed));
   }, [completed]);
+
+  const simulateResponse = async (nextMessages: ChatMessage[]) => {
+    setTyping(true);
+
+    try {
+      const primaryResponse = await askAI(
+        "groq",
+        nextMessages.map(({ role, content }) => ({
+          role,
+          content,
+        })) as ModelMessage[],
+      );
+
+      if (!primaryResponse.text) {
+        // if the ai desides to call a tool
+        const toolResult: ToolResultPart = {
+          type: "tool-result",
+          toolCallId: primaryResponse.toolResults[0].toolCallId,
+          toolName: primaryResponse.toolResults[0].toolName,
+          output: {
+            type: "text",
+            value: "Tool executed successfully.",
+          },
+        };
+
+        const toolCall: ToolCallPart = {
+          type: "tool-call",
+          toolCallId: primaryResponse.toolCalls[0].toolCallId,
+          toolName: primaryResponse.toolResults[0].toolName,
+          input: primaryResponse.toolCalls[0].input,
+        };
+
+        const toolResultMessage = {
+          id: crypto.randomUUID(),
+          role: "tool",
+          content: [toolResult],
+          ts: new Date(),
+        };
+
+        const toolCallMessage = {
+          id: crypto.randomUUID(),
+          role: "assistant",
+          content: [toolCall],
+          ts: new Date(),
+        };
+
+        const returnedMessages = [
+          ...nextMessages,
+          toolCallMessage,
+          toolResultMessage,
+        ] as ChatMessage[];
+
+        setMessages(returnedMessages);
+
+        const secondaryResponse = await askAI(
+          "groq",
+          returnedMessages.map(({ role, content }) => ({
+            role,
+            content,
+          })) as ModelMessage[],
+        );
+
+        setMessages((prev) => [
+          ...prev,
+          {
+            id: crypto.randomUUID(),
+            role: "assistant",
+            content: secondaryResponse.text,
+            ts: new Date(),
+          },
+        ]);
+
+        return;
+      }
+
+      setMessages((prev) => [
+        ...prev,
+        {
+          id: crypto.randomUUID(),
+          role: "assistant",
+          content: primaryResponse.text,
+          ts: new Date(),
+        },
+      ]);
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setTyping(false);
+    }
+  };
+
+  const viewIris = () => {
+    prevView.current = view;
+    setView("ai");
+  };
+
+  const exitConversation = useCallback(() => {    
+    setView(prevView.current);
+    setMessages([]);
+    setTyping(false);
+  }, []);
+
+  const handleSend = async (text: string) => {
+    if (!text.trim() || typing) return;
+
+    const msg: ChatMessage = {
+      id: uid(),
+      role: "user",
+      content: text,
+      ts: new Date(),
+    };
+
+    const nextMessages: ChatMessage[] = [...messages, msg];
+
+    setMessages(nextMessages);
+
+    await simulateResponse(nextMessages);
+  };
 
   // Merge completed state into modules for timeline
   const modulesWithState = MODULES.map((mod) => ({
@@ -120,6 +256,16 @@ export default function Home() {
     if (view === "analytics") {
       return <Analytics modules={modulesWithState} scores={scores} />;
     }
+    if (view === "ai") {
+      return (
+        <WorkspaceConversation
+          messages={messages}
+          typing={typing}
+          onSend={handleSend}
+          onClose={exitConversation}
+        />
+      );
+    }
     if (currentModule) {
       return (
         <ModulePage
@@ -166,7 +312,7 @@ export default function Home() {
           }}
         >
           {/* Logo */}
-          <div className="p-5 flex items-center justify-between border-b border-white/5">
+          <div className="p-5 flex items-center justify-between border-b border-white/25">
             <div>
               <p className="text-base font-bold text-white tracking-tight">
                 Academiq
@@ -195,10 +341,10 @@ export default function Home() {
                     setView(item.id);
                     setSidebarOpen(false);
                   }}
-                  className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-all ${
+                  className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm ${
                     active
                       ? "bg-indigo-500/20 text-indigo-300 border border-indigo-500/25"
-                      : "text-white/50 hover:bg-white/5 hover:text-white/80"
+                      : "text-white/50 hover:bg-white/25 hover:text-white/80"
                   }`}
                 >
                   <Icon size={15} className={active ? "text-indigo-400" : ""} />
@@ -208,7 +354,7 @@ export default function Home() {
             })}
 
             {/* Modules */}
-            <div className="pt-4">
+            <div className="pt-4 pb-2 border-b border-white/25">
               <p className="text-[10px] font-mono font-semibold uppercase tracking-widest text-white/20 px-3 mb-2">
                 Modules
               </p>
@@ -218,10 +364,10 @@ export default function Home() {
                   <button
                     key={mod.id}
                     onClick={() => handleSelectModule(mod.id)}
-                    className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-all ${
+                    className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm ${
                       active
-                        ? "bg-white/8 text-white"
-                        : "text-white/50 hover:bg-white/5 hover:text-white/80"
+                        ? "bg-[rgba(145,128,170,0.14)] text-[#c9c5ba] font-semibold"
+                        : "text-white/50 hover:bg-white/25 hover:text-white/80"
                     }`}
                   >
                     <div
@@ -236,6 +382,39 @@ export default function Home() {
                 );
               })}
             </div>
+
+            {/* Iris */}
+            <button
+              onClick={viewIris}
+              className={`w-full flex items-center gap-2.5 h-9 text-[13px] rounded-xl mt-1 px-2.5 ${
+                view === "ai"
+                  ? "bg-indigo-500/20 text-indigo-300 border border-indigo-500/25"
+                  : "text-[#7a7a6a] font-medium hover:bg-white/25 hover:text-white/80"
+              }`}
+            >
+              <Bot
+                size={16}
+                style={{
+                  color: view === "ai" ? "#9180aa" : "#5a5a4a",
+                  transition: "color 0.15s ease",
+                }}
+              />
+              <span className="flex-1 text-left">Iris</span>
+              {view === "ai" ? (
+                <div
+                  className="w-1 h-1 rounded-full shrink-0"
+                  style={{
+                    background: "#9180aa",
+                    boxShadow: "0 0 4px rgba(145,128,170,0.8)",
+                  }}
+                />
+              ) : (
+                <div
+                  className="w-1.5 h-1.5 rounded-full shrink-0"
+                  style={{ background: "rgba(145,128,170,0.4)" }}
+                />
+              )}
+            </button>
           </nav>
 
           {/* Footer */}
@@ -296,7 +475,7 @@ export default function Home() {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -8 }}
               transition={{ duration: 0.18 }}
-              className="p-4 md:p-6 max-w-6xl mx-auto"
+              className="p-4 md:p-6 max-w-6xl mx-auto h-full"
             >
               {renderContent()}
             </motion.div>

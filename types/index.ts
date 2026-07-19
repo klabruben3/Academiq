@@ -1,3 +1,5 @@
+import { UserContent, ToolCallPart, ToolResultPart, AssistantContent } from "ai";
+
 export type AssessmentType =
   | 'weekly-test'
   | 'class-test'
@@ -157,3 +159,10 @@ export interface WorkloadDataPoint {
 
 export type ViewType = 'dashboard' | 'timeline' | 'calendar' | 'analytics' | string;
 export type CalendarView = 'month' | 'week' | 'agenda';
+
+export interface ChatMessage {
+  id: string;
+  role: "user" | "assistant" | "tool";
+  content: UserContent | AssistantContent | ToolResultPart | ToolCallPart;
+  ts: Date;
+}

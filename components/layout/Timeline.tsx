@@ -2,13 +2,14 @@ import { useMemo, useState } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { format, parseISO } from "date-fns";
 import { Check, MapPin, Clock, BookOpen, Filter } from "lucide-react";
-import type { Module } from "../types";
+import type { Module } from "../../types";
 import {
   buildTimeline,
   getDaysUntil,
   countdownLabel,
-} from "../utils/calculations";
-import { TypeBadge, TYPE_COLORS, TYPE_LABELS } from "./ui";
+} from "../../utils/calculations";
+import { TYPE_COLORS, TYPE_LABELS } from "../ui/constants";
+import { TypeBadge } from "../ui";
 
 interface Props {
   modules: Module[];
