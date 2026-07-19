@@ -25,6 +25,7 @@ import { ChatMessage } from "@/types";
 import { ModelMessage, ToolCallPart, ToolResultPart } from "ai";
 import { askAI } from "@/components/features/ai/actions/chat";
 import { uid } from "@/lib/helpers";
+import { compressForAI } from "@/tests/cleanText";
 
 type ViewId =
   | "dashboard"
@@ -68,7 +69,7 @@ export default function Home() {
     useState<Record<string, boolean>>(loadCompleted);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
-  const [typing, setTyping] = useState(false);  
+  const [typing, setTyping] = useState(false);
 
   useEffect(() => {
     localStorage.setItem(SCORES_KEY, JSON.stringify(scores));
@@ -88,6 +89,7 @@ export default function Home() {
           role,
           content,
         })) as ModelMessage[],
+        compressForAI()
       );
 
       if (!primaryResponse.text) {
@@ -173,7 +175,7 @@ export default function Home() {
     setView("ai");
   };
 
-  const exitConversation = useCallback(() => {    
+  const exitConversation = useCallback(() => {
     setView(prevView.current);
     setMessages([]);
     setTyping(false);

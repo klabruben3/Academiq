@@ -1,7 +1,7 @@
 import { extractedText } from "./extractedText";
 
-export function compressForAI(rawText: string): string {
-  const lines = rawText
+export function compressForAI(): string {
+  const lines = extractedText
     .split("\n")
     .map((l) => l.replace(/\s+/g, " ").trim())
     .filter(Boolean);
@@ -29,5 +29,3 @@ export function compressForAI(rawText: string): string {
 
   return deduped.join("\n");
 }
-
-console.log(compressForAI(extractedText));
