@@ -9,7 +9,7 @@ import {
 } from "./action";
 import { supabase } from "@/lib/supabase/client";
 import { useRouter } from "next/navigation";
-import { AuthSessionMissingError, User } from "@supabase/supabase-js";
+import { User } from "@supabase/supabase-js";
 import { useAuthContext } from "@/context";
 
 /* ─── Icon set ─── */
@@ -1330,12 +1330,13 @@ function AuthModal({
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPasswordV1, setNewPasswordV1] = useState("");
   const [newPasswordV2, setNewPasswordV2] = useState("");
+  const [includeSignIn, setIncludeSignIn] = useState(true);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   //   For Stats
   const [university, setUniversity] = useState("");
   const [yearOfStudy, setYearOfStudy] = useState("");
   const [faculty, setFaculty] = useState("");
-  const [includeSignIn, setIncludeSignIn] = useState(true);
 
   const { initialize } = useAuthContext();
 
@@ -1403,27 +1404,44 @@ function AuthModal({
 
   const handleCreateAccount = async () => {
     if (blockRegister) return;
-    await signUpWithPassword({
-      id: user?.id,
-      name,
-      email,
-      university,
-      faculty,
-      yearOfStudy,
-      password: newPasswordV2,
-    });
-    initialize();
+    setIsSubmitting(true);
+
+    try {
+      await signUpWithPassword({
+        id: user?.id,
+        name,
+        email,
+        university,
+        faculty,
+        yearOfStudy,
+        password: newPasswordV2,
+      });
+      await initialize();
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleSignInWithPassword = async () => {
     if (!email.trim() || !currentPassword.trim()) return;
-    signInWithPassword(email, currentPassword);
-    initialize();
+    setIsSubmitting(true);
+
+    try {
+      await signInWithPassword(email, currentPassword);
+      await initialize();
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleSignInWithGoogle = async () => {
-    signInWithGoogle();
-    initialize();
+    setIsSubmitting(true);
+
+    try {
+      await signInWithGoogle();
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const switchToSignup = (e: React.MouseEvent) => {
@@ -1576,18 +1594,20 @@ function AuthModal({
                 fontSize: 14,
                 marginBottom: 10,
                 background:
-                  !email.trim() || !currentPassword.trim()
+                  !email.trim() || !currentPassword.trim() || isSubmitting
                     ? "gray"
                     : "linear-gradient(135deg, #4338ca 0%, #6366f1 55%, #818cf8 100%)",
                 color:
-                  !email.trim() || !currentPassword.trim() ? "black" : "white",
+                  !email.trim() || !currentPassword.trim() || isSubmitting
+                    ? "black"
+                    : "white",
                 cursor:
-                  !email.trim() || !currentPassword.trim()
+                  !email.trim() || !currentPassword.trim() || isSubmitting
                     ? "not-allowed"
                     : "pointer",
               }}
             >
-              Sign In
+              {!isSubmitting ? "Sign In" : "Signing in..."}
             </button>
 
             <button
@@ -1618,7 +1638,7 @@ function AuthModal({
               }}
             >
               <IconGoogle size={16} />
-              Continue with Google
+              {!isSubmitting ? "Continue with Google" : "Continuing..."}
             </button>
 
             <div style={{ textAlign: "center", fontSize: 13, color: MUTED }}>
@@ -1736,15 +1756,17 @@ function AuthModal({
                 width: "100%",
                 textAlign: "center",
                 fontSize: 14,
-                background: blockRegister
-                  ? "gray"
-                  : "linear-gradient(135deg, #4338ca 0%, #6366f1 55%, #818cf8 100%)",
-                color: blockRegister ? "black" : "white",
-                cursor: blockRegister ? "not-allowed" : "pointer",
+                background:
+                  blockRegister || isSubmitting
+                    ? "gray"
+                    : "linear-gradient(135deg, #4338ca 0%, #6366f1 55%, #818cf8 100%)",
+                color: blockRegister || isSubmitting ? "black" : "white",
+                cursor:
+                  blockRegister || isSubmitting ? "not-allowed" : "pointer",
                 marginBottom: 10,
               }}
             >
-              Create Account
+              {!isSubmitting ? "Create Account" : "Creating..."}
             </button>
 
             <div style={{ textAlign: "center", fontSize: 13, color: MUTED }}>
@@ -1777,32 +1799,32 @@ export default function App() {
 
   const router = useRouter();
 
-  const { user: authUser } = useAuthContext();
-
-  // opens the signup when if current user is not registered in the system
-  async function getProfile() {
-    if (!authUser) return;
-
-    // checks if the user has a profile
-    const { data: profile, error } = await supabase
-      .from("users")
-      .select("id")
-      .eq("id", authUser.id)
-      .maybeSingle();
-
-    if (error) throw error;
-
-    if (profile) {
-      router.replace("/");
-      return;
-    }
-
-    setModalOpen(true);
-  }
+  const { user: authUser, isLoading: isAuthLoading } = useAuthContext();
 
   useEffect(() => {
+    if (isAuthLoading) return;
+
+    async function getProfile() {
+      if (!authUser) return;
+
+      const { data: profile, error } = await supabase
+        .from("users")
+        .select("id")
+        .eq("id", authUser.id)
+        .maybeSingle();
+
+      if (error) throw error;
+
+      if (profile) {
+        router.replace("/");
+        return;
+      }
+
+      setModalOpen(true);
+    }
+
     getProfile();
-  }, []);
+  }, [authUser, isAuthLoading, router]);
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 20);
@@ -2048,7 +2070,7 @@ export default function App() {
           </div>
 
           {/* Dashboard preview */}
-          <div style={{ position: "relative", paddingInline: "200px" }}>
+          <div style={{ position: "relative" }}>
             <DashboardPreview />
           </div>
         </div>

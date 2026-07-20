@@ -1,4 +1,5 @@
 "use server";
+import { getAuthCallbackUrl } from "@/lib/supabase/auth-url";
 import { createClient } from "@/lib/supabase/server";
 import { User } from "@supabase/supabase-js";
 import { redirect } from "next/navigation";
@@ -40,16 +41,16 @@ export async function signUpWithPassword(
       email: user.email,
       password: user.password,
     });
-    
+
     if (signUpError || !signedUpUser) throw signUpError;
     tempUser = signedUpUser;
   }
 
-  if(!tempUser || !user) return;
+  const profileId = user.id ?? tempUser?.id;
+  if (!profileId) return;
 
-  // registers user to supabase
   const { error } = await supabase.from("users").insert({
-    id: user.id ? user.id : tempUser.id,
+    id: profileId,
     name: user.name,
     email: user.email,
     university: user.university,
@@ -64,11 +65,12 @@ export async function signUpWithPassword(
 
 export async function signInWithGoogle() {
   const supabase = await createClient();
+  const redirectTo = await getAuthCallbackUrl();
 
   const { data, error } = await supabase.auth.signInWithOAuth({
     provider: "google",
     options: {
-      redirectTo: "https://academiq-nwu.vercel.app/auth/callback",
+      redirectTo,
     },
   });
 

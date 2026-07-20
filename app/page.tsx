@@ -9,8 +9,7 @@ export default async function Home() {
     data: { user },
     error,
   } = await supabase.auth.getUser();
-  console.log("server user:", user);
-  
+
   if (error || !user) {
     redirect("/getstarted");
   }
