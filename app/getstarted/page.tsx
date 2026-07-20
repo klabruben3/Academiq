@@ -2,7 +2,15 @@
 
 import { useState, useEffect, useRef, useCallback } from "react";
 import "./index.css";
-import { signUpWithPassword } from "./action";
+import {
+  signInWithGoogle,
+  signInWithPassword,
+  signUpWithPassword,
+} from "./action";
+import { supabase } from "@/lib/supabase/client";
+import { useRouter } from "next/navigation";
+import { AuthSessionMissingError, User } from "@supabase/supabase-js";
+import { useAuthContext } from "@/context";
 
 /* ─── Icon set ─── */
 
@@ -1303,7 +1311,15 @@ function StyledInput({
 /* ─── Auth Modal ─── */
 type ModalMode = "signin" | "signup";
 
-function AuthModal({ open, onClose }: { open: boolean; onClose: () => void }) {
+function AuthModal({
+  open,
+  onClose,
+  user,
+}: {
+  open: boolean;
+  onClose: () => void;
+  user: User | null;
+}) {
   const overlayRef = useRef<HTMLDivElement>(null);
   const modalRef = useRef<HTMLDivElement>(null);
   const firstFocusRef = useRef<HTMLButtonElement>(null);
@@ -1319,16 +1335,31 @@ function AuthModal({ open, onClose }: { open: boolean; onClose: () => void }) {
   const [university, setUniversity] = useState("");
   const [yearOfStudy, setYearOfStudy] = useState("");
   const [faculty, setFaculty] = useState("");
+  const [includeSignIn, setIncludeSignIn] = useState(true);
+
+  const { initialize } = useAuthContext();
 
   const passwordMatch = newPasswordV1 === newPasswordV2;
   const noInput =
     !name.trim() ||
     !email.trim() ||
-    !newPasswordV1.trim() ||
-    !newPasswordV2.trim() ||
     !university.trim() ||
     !faculty.trim() ||
     !yearOfStudy.trim();
+
+  const blockRegister =
+    noInput ||
+    (!user
+      ? !passwordMatch || !newPasswordV1.trim() || !newPasswordV2.trim()
+      : false);
+
+  // show the SignUp state if the user is not registered
+  useEffect(() => {
+    if (user) {
+      setMode("signup");
+      setIncludeSignIn(false);
+    }
+  }, [user]);
 
   // Escape to close
   useEffect(() => {
@@ -1343,13 +1374,6 @@ function AuthModal({ open, onClose }: { open: boolean; onClose: () => void }) {
   // Focus first element on open
   useEffect(() => {
     if (open) setTimeout(() => firstFocusRef.current?.focus(), 50);
-  }, [open]);
-
-  // Reset mode when modal opens
-  useEffect(() => {
-    if (open) {
-      setMode("signin");
-    }
   }, [open]);
 
   // Focus trap
@@ -1377,9 +1401,10 @@ function AuthModal({ open, onClose }: { open: boolean; onClose: () => void }) {
     if (e.target === overlayRef.current) onClose();
   };
 
-  const handleCreateAccount = () => {
-    if (noInput || !passwordMatch) return;
-    signUpWithPassword({
+  const handleCreateAccount = async () => {
+    if (blockRegister) return;
+    await signUpWithPassword({
+      id: user?.id,
       name,
       email,
       university,
@@ -1387,7 +1412,18 @@ function AuthModal({ open, onClose }: { open: boolean; onClose: () => void }) {
       yearOfStudy,
       password: newPasswordV2,
     });
-    setMode("signin");
+    initialize();
+  };
+
+  const handleSignInWithPassword = async () => {
+    if (!email.trim() || !currentPassword.trim()) return;
+    signInWithPassword(email, currentPassword);
+    initialize();
+  };
+
+  const handleSignInWithGoogle = async () => {
+    signInWithGoogle();
+    initialize();
   };
 
   const switchToSignup = (e: React.MouseEvent) => {
@@ -1533,11 +1569,22 @@ function AuthModal({ open, onClose }: { open: boolean; onClose: () => void }) {
 
             <button
               className="btn-primary"
+              onClick={handleSignInWithPassword}
               style={{
                 width: "100%",
                 textAlign: "center",
                 fontSize: 14,
                 marginBottom: 10,
+                background:
+                  !email.trim() || !currentPassword.trim()
+                    ? "gray"
+                    : "linear-gradient(135deg, #4338ca 0%, #6366f1 55%, #818cf8 100%)",
+                color:
+                  !email.trim() || !currentPassword.trim() ? "black" : "white",
+                cursor:
+                  !email.trim() || !currentPassword.trim()
+                    ? "not-allowed"
+                    : "pointer",
               }}
             >
               Sign In
@@ -1562,6 +1609,7 @@ function AuthModal({ open, onClose }: { open: boolean; onClose: () => void }) {
                 marginBottom: 20,
                 transition: "background 0.15s ease",
               }}
+              onClick={handleSignInWithGoogle}
               onMouseEnter={(e) => {
                 e.currentTarget.style.background = "rgba(30,37,64,0.9)";
               }}
@@ -1596,7 +1644,7 @@ function AuthModal({ open, onClose }: { open: boolean; onClose: () => void }) {
         {mode === "signup" && (
           <div>
             <div style={{ marginBottom: 24 }}>
-              <button
+              <div
                 className="font-display"
                 style={{
                   fontSize: 24,
@@ -1607,7 +1655,7 @@ function AuthModal({ open, onClose }: { open: boolean; onClose: () => void }) {
                 }}
               >
                 Create your account
-              </button>
+              </div>
               <div style={{ fontSize: 14, color: MUTED, lineHeight: 1.5 }}>
                 {"Let's get your semester organised."}
               </div>
@@ -1637,22 +1685,26 @@ function AuthModal({ open, onClose }: { open: boolean; onClose: () => void }) {
                   setState={(value) => setEmail(value)}
                 />
               </Field>
-              <Field label="Password">
-                <StyledInput
-                  type="password"
-                  placeholder="••••••••"
-                  autoComplete="new-password"
-                  setState={(value) => setNewPasswordV1(value)}
-                />
-              </Field>
-              <Field label="Confirm Password">
-                <StyledInput
-                  type="password"
-                  placeholder="••••••••"
-                  autoComplete="new-password"
-                  setState={(value) => setNewPasswordV2(value)}
-                />
-              </Field>
+              {includeSignIn && (
+                <>
+                  <Field label="Password">
+                    <StyledInput
+                      type="password"
+                      placeholder="••••••••"
+                      autoComplete="new-password"
+                      setState={(value) => setNewPasswordV1(value)}
+                    />
+                  </Field>
+                  <Field label="Confirm Password">
+                    <StyledInput
+                      type="password"
+                      placeholder="••••••••"
+                      autoComplete="new-password"
+                      setState={(value) => setNewPasswordV2(value)}
+                    />
+                  </Field>
+                </>
+              )}
               <Field label="University">
                 <StyledInput
                   type="text"
@@ -1684,12 +1736,11 @@ function AuthModal({ open, onClose }: { open: boolean; onClose: () => void }) {
                 width: "100%",
                 textAlign: "center",
                 fontSize: 14,
-                background:
-                  noInput || !passwordMatch
-                    ? "gray"
-                    : "linear-gradient(135deg, #4338ca 0%, #6366f1 55%, #818cf8 100%)",
-                color: noInput || !passwordMatch ? "black" : "white",
-                pointerEvents: noInput || !passwordMatch ? "none" : "auto",
+                background: blockRegister
+                  ? "gray"
+                  : "linear-gradient(135deg, #4338ca 0%, #6366f1 55%, #818cf8 100%)",
+                color: blockRegister ? "black" : "white",
+                cursor: blockRegister ? "not-allowed" : "pointer",
                 marginBottom: 10,
               }}
             >
@@ -1723,6 +1774,36 @@ function AuthModal({ open, onClose }: { open: boolean; onClose: () => void }) {
 export default function App() {
   const [scrolled, setScrolled] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
+
+  const router = useRouter();
+
+  const { user: authUser } = useAuthContext();
+
+  // opens the signup when if current user is not registered in the system
+  async function getProfile() {
+    if (!authUser) {
+      setModalOpen(true);
+      return;
+    }
+
+    // checks if the user has a profile
+    const { data: profile, error } = await supabase
+      .from("users")
+      .select("id")
+      .eq("id", authUser.id)
+      .maybeSingle();
+
+    if (error) throw error;
+
+    if (profile) {
+      router.replace("/");
+      return;
+    }
+  }
+
+  useEffect(() => {
+    getProfile();
+  }, []);
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 20);
@@ -2182,7 +2263,7 @@ export default function App() {
       </footer>
 
       {/* ── AUTH MODAL ── */}
-      <AuthModal open={modalOpen} onClose={closeModal} />
+      <AuthModal open={modalOpen} onClose={closeModal} user={authUser} />
     </div>
   );
 }

@@ -5,7 +5,7 @@ import type { User } from "@supabase/supabase-js";
 import { supabase } from "@/lib/supabase/client";
 
 type AuthContextType = {
-  isAuth: boolean;
+  user: User | null;
   initialize: () => Promise<void>;
 };
 
@@ -13,13 +13,13 @@ const AuthContext = createContext<AuthContextType | null>(null);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
-  const isAuth = !!user;
 
   const initialize = async () => {
     const {
       data: { user },
       error,
     } = await supabase.auth.getUser();
+    console.log("in the provider:", user);
     if (!user) return;
     setUser(user);
 
@@ -27,7 +27,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       console.log(error);
       return;
     }
-  };
+  };  
 
   useEffect(() => {
     initialize();
@@ -52,7 +52,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   return (
     <AuthContext.Provider
       value={{
-        isAuth,
+        user,
         initialize,
       }}
     >

@@ -1,4 +1,4 @@
-import { Academiq, LoadingScreen } from "@/components/layout";
+import { Academiq } from "@/components/layout";
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 
@@ -9,12 +9,11 @@ export default async function Home() {
     data: { user },
     error,
   } = await supabase.auth.getUser();
-
+  console.log("server user:", user);
+  
   if (error || !user) {
     redirect("/getstarted");
   }
 
-  const isAuth = !!user;
-
-  return <>{isAuth ? <Academiq /> : <LoadingScreen />}</>;
+  return <Academiq />;
 }
