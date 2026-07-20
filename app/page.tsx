@@ -1,21 +1,20 @@
 import { Academiq, LoadingScreen } from "@/components/layout";
-// import { createClient } from "@/lib/supabase/server";
+import { createClient } from "@/lib/supabase/server";
+import { redirect } from "next/navigation";
 
 export default async function Home() {
-  // const supabase = await createClient();
+  const supabase = await createClient();
 
-  // const { data: worker, error } = await supabase
-  //   .from("users")
-  //   .select("id")
-  //   .single()
+  const {
+    data: { user },
+    error,
+  } = await supabase.auth.getUser();
 
-  // if (worker) {
-  //   console.error(worker);
-  // }
-  // if (error) {
-  //   console.log(error);
-  // }
-  const isAuth = false;
+  if (error || !user) {
+    redirect("/getstarted");
+  }
+
+  const isAuth = !!user;
 
   return <>{isAuth ? <Academiq /> : <LoadingScreen />}</>;
 }
