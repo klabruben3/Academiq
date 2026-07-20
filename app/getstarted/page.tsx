@@ -1781,10 +1781,7 @@ export default function App() {
 
   // opens the signup when if current user is not registered in the system
   async function getProfile() {
-    if (!authUser) {
-      setModalOpen(true);
-      return;
-    }
+    if (!authUser) return;
 
     // checks if the user has a profile
     const { data: profile, error } = await supabase
@@ -1799,6 +1796,8 @@ export default function App() {
       router.replace("/");
       return;
     }
+
+    setModalOpen(true);
   }
 
   useEffect(() => {
