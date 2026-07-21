@@ -447,11 +447,11 @@ export default function Academiq() {
           >
             <Menu size={20} />
           </button>
-          <p className="text-sm font-semibold text-white">
+          {/* <p className="text-sm font-semibold text-white">
             {currentModule
               ? currentModule.code
               : (NAV_ITEMS.find((n) => n.id === view)?.label ?? "Module")}
-          </p>
+          </p> */}
         </header>
 
         {/* Breadcrumb (desktop) */}
@@ -467,7 +467,7 @@ export default function Academiq() {
                 Modules
               </button>
               <ChevronRight size={12} />
-              <span className="text-white/60">{currentModule.code}</span>
+              {/* <span className="text-white/60">{currentModule.code}</span> */}
             </>
           ) : (
             <span className="text-white/60 capitalize">{view}</span>
