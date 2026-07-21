@@ -44,6 +44,7 @@ export default function ModulePage({
     [mod, scores],
   );
 
+
   const minRequired = mod.participationFormula.minimumToPass;
   const examAdmissionOk = mod.hasExam
     ? isExamEligible(mod, scores)
