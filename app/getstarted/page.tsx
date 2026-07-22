@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback } from "react";
-import "./index.css";
 import {
   signInWithGoogle,
   signInWithPassword,
