@@ -25,7 +25,7 @@ function Progress({ width, color }: { width: number; color: string }) {
     >
       <div
         style={{
-          width,
+          width: `${width}%`,
           height: "100%",
           background: color,
           borderRadius: 999,
@@ -129,7 +129,6 @@ function Home({ iconUrl }: { iconUrl: string }) {
           justifyContent: "center",
           alignItems: "center",
           paddingTop: 10,
-          zIndex: 10,
         }}
       >
         <img src={iconUrl} width={700} height={700} alt="Academiq" />
@@ -299,7 +298,7 @@ function Home({ iconUrl }: { iconUrl: string }) {
 
 export async function GET() {
   return new ImageResponse(
-    <Home iconUrl="https://academiq-nwu.vercel.app/logo.png" />,
+    <Home iconUrl="https://academiq-nwu.vercel.app/logo-3d.png" />,
     size,
   );
 }
