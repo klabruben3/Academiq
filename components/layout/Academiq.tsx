@@ -27,7 +27,6 @@ import { ModelMessage, ToolCallPart, ToolResultPart } from "ai";
 import { askAI } from "@/components/features/ai/actions/chat";
 import { uid } from "@/lib/helpers";
 import { compressForAI } from "@/tests/cleanText";
-import { EmptyScreen } from "@/app/loading";
 
 type ViewId =
   | "dashboard"
@@ -72,10 +71,6 @@ export default function Academiq() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [typing, setTyping] = useState(false);
-
-  if (true) {
-    return <EmptyScreen text="Coming soon..." />;
-  }
 
   useEffect(() => {
     localStorage.setItem(SCORES_KEY, JSON.stringify(scores));
@@ -447,11 +442,11 @@ export default function Academiq() {
           >
             <Menu size={20} />
           </button>
-          {/* <p className="text-sm font-semibold text-white">
+          <p className="text-sm font-semibold text-white">
             {currentModule
               ? currentModule.code
               : (NAV_ITEMS.find((n) => n.id === view)?.label ?? "Module")}
-          </p> */}
+          </p>
         </header>
 
         {/* Breadcrumb (desktop) */}
@@ -467,7 +462,7 @@ export default function Academiq() {
                 Modules
               </button>
               <ChevronRight size={12} />
-              {/* <span className="text-white/60">{currentModule.code}</span> */}
+              <span className="text-white/60">{currentModule.code}</span>
             </>
           ) : (
             <span className="text-white/60 capitalize">{view}</span>

@@ -1,36 +1,114 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Academiq - App Architecture Overview
 
-## Getting Started
+## What is Academiq?
 
-First, run the development server:
+**Academiq** is an AI-powered academic workspace designed for university students to track modules, manage assessments, plan study sessions, and stay on top of university life.
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+## Tech Stack
+
+- **Framework**: Next.js 16.2.10 (App Router)
+- **UI**: React 19, Tailwind CSS 4, Motion (for animations)
+- **Charts**: Recharts
+- **Icons**: Lucide React
+- **AI**: Vercel AI SDK with multiple providers (Groq, OpenAI, Google Gemini)
+- **Auth**: Supabase SSR
+- **Date handling**: date-fns
+
+## Architecture
+
+```
+academiq/
+├── app/
+│   ├── layout.tsx          # Root layout with AuthProvider
+│   ├── page.tsx            # Main app entry (redirects to /getstarted if not authenticated)
+│   ├── loading.tsx         # Loading screen component
+│   ├── getstarted/         # Landing page with auth
+│   │   └── page.tsx        # Marketing page + sign-in/signup modal
+│   └── og/                 # Open Graph image
+│
+├── components/
+│   ├── layout/             # Main app views
+│   │   ├── Academiq.tsx    # Main app shell (sidebar, routing)
+│   │   ├── Dashboard.tsx   # Overview with stats, workload chart, upcoming
+│   │   ├── Timeline.tsx    # Assessment timeline view
+│   │   ├── CalendarView.tsx  # Calendar view
+│   │   └── ModulePage.tsx  # Per-module detail page
+│   ├── features/           # Feature components
+│   │   ├── Analytics.tsx   # Analytics dashboard
+│   │   └── ai/             # AI chat system
+│   │       ├── WorkspaceConversation.tsx
+│   │       ├── actions/
+│   │       │   ├── chat.ts           # AI response generation
+│   │       │   ├── data.ts           # System prompts
+│   │       │   ├── helpers.ts        # Functions the ai and the user can have access to
+│   │       │   ├── schema.ts         # Shape of the arguments the helper function may need
+│   │       │   └── tools.ts          # AI tools
+│   │       └── ui/                   # Chat UI components
+│   └── ui/                 # Shared UI components
+│
+├── context/
+│   └── authContext.tsx     # Supabase auth context
+│
+├── data/
+│   ├── mockData.ts         # Mock module data
+│   └── modules.ts          # Static module data imported to Academiq
+│
+├── lib/
+│   ├── ai/                 # AI SDK configurations
+│   │   ├── - groq.ts
+│   │   │   - openai.ts
+│   │   │   - gemini.ts
+│   │   └── supabase/       # Supabase clients
+│   └── helpers.ts          # Utility functions
+│
+├── types/
+│   └── index.ts            # TypeScript interfaces
+│
+└── utils/
+    └── calculations.ts     # Business logic (marks, workload, timeline)
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Core Features
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### 1. **Dashboard** (`/`)
+- Date display with semester week tracking
+- Next assessment hero card with countdown
+- Stats: Due in 7/14/30 days, semester week
+- Priority focus list (high-priority assessments)
+- Semester workload area chart
+- Module cards with progress bars
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### 2. **Navigation Views**
+- **Dashboard**: Overview of all modules
+- **Timeline**: Chronological assessment view
+- **Calendar**: Calendar view of deadlines
+- **Analytics**: Detailed stats and insights
+- **Modules**: Information about each module, participation formula, assessments, score vs wight graph and target scores
+- **Iris**: AI chat interface
 
-## Learn More
+### 3. **Module System**
+Each module includes:
+- Assessment components with weights, dates, study units
+- Pass requirements and participation formulas
+- Exam information (dates, papers, opportunities)
+- Recess periods
 
-To learn more about Next.js, take a look at the following resources:
+### 4. **Iris AI Assistant**
+- Chat interface for asking questions about modules
+- Uses Groq (llama-3.3-70b-versatile) as primary model
+- Can use OpenAI (gpt-4o) or Gemini (gemini-2.0-flash) as alternatives
+- Has tool-calling capabilities
+- Context-aware (receives compressed module data)
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+### 5. **Authentication**
+- Google OAuth sign-in
+- Email/password sign-in
+- Supabase-based auth with user profiles
+- Anonymous users redirected to `/getstarted`
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Key Business Logic
 
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- **Participation Mark Calculation**: Weighted average of assessment scores
+- **Priority Scoring**: Based on days until due, weight, and type
+- **Workload Analysis**: Weekly/monthly assessment intensity
+- **Exam Eligibility**: Checks if participation mark meets threshold
