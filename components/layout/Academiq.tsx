@@ -21,6 +21,7 @@ import {
   Timeline,
   CalendarView,
   ModulePage,
+  AddModule,
 } from "@/components/layout";
 import { ChatMessage } from "@/types";
 import { ModelMessage, ToolCallPart, ToolResultPart } from "ai";
@@ -30,6 +31,7 @@ import { compressForAI } from "@/tests/cleanText";
 
 type ViewId =
   | "dashboard"
+  | "add module"
   | "timeline"
   | "calendar"
   | "analytics"
@@ -241,6 +243,7 @@ export default function Academiq() {
           modules={modulesWithState}
           scores={scores}
           onSelectModule={handleSelectModule}
+          onAddModule={() => setView("add module")}
         />
       );
     }
@@ -268,6 +271,9 @@ export default function Academiq() {
           onClose={exitConversation}
         />
       );
+    }
+    if (view === "add module") {
+      return <AddModule />;
     }
     if (currentModule) {
       return (
@@ -360,6 +366,14 @@ export default function Academiq() {
             <div className="pt-4 pb-2 border-b border-white/25">
               <p className="text-[10px] font-mono font-semibold uppercase tracking-widest text-white/20 px-3 mb-2">
                 Modules
+                {MODULES.length === 0 && (
+                  <>
+                    <br />
+                    <span className="ml-2 text-[orangered]/25">
+                      No registered modules
+                    </span>
+                  </>
+                )}
               </p>
               {MODULES.map((mod) => {
                 const active = view === `module:${mod.id}`;

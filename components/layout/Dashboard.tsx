@@ -16,6 +16,7 @@ import {
   TrendingUp,
   BookOpen,
   ChevronRight,
+  Plus,
 } from "lucide-react";
 import type { Module } from "../../types";
 import {
@@ -36,9 +37,15 @@ interface Props {
   modules: Module[];
   scores: Record<string, number>;
   onSelectModule: (id: string) => void;
+  onAddModule: () => void;
 }
 
-export default function Dashboard({ modules, scores, onSelectModule }: Props) {
+export default function Dashboard({
+  modules,
+  scores,
+  onSelectModule,
+  onAddModule,
+}: Props) {
   const timeline = useMemo(
     () => buildTimeline(modules, scores),
     [modules, scores],
@@ -298,9 +305,16 @@ export default function Dashboard({ modules, scores, onSelectModule }: Props) {
 
       {/* Module cards */}
       <div>
-        <div className="flex items-center gap-2 mb-3">
+        <div className="flex items-center gap-2 mb-3 font-semibold text-white/80 text-sm">
           <BookOpen size={14} className="text-white/40" />
-          <h3 className="text-sm font-semibold text-white/80">Modules</h3>
+          <h3>Modules</h3>
+          <button
+            onClick={onAddModule}
+            className="ml-auto cursor-pointer flex items-center rounded-xl border border-white/8 bg-white/4 px-3 py-2 gap-2 hover:text-white active:scale-95 transition-transform duration-250"
+          >
+            <Plus width={18} />
+            <span>Add module</span>
+          </button>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3">
           {modules.map((mod) => {

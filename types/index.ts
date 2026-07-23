@@ -103,23 +103,34 @@ export interface Module {
   id: string;
   code: string;
   name: string;
-  color: string;
+  description: string;
+
   lecturer?: string;
   email?: string;
   office?: string;
   consultationHours?: string;
+  
   groups?: ModuleGroup[];
+
   assessments: AssessmentComponent[];
+  
   participationFormula: ParticipationFormula;
   passRequirements?: PassRequirements;
+  
+  semesterStart: string;
+  semesterEnd: string;
+
   hasExam: boolean;
   examDate?: string;
   examDateEnd?: string;
   examOpportunities?: ExamOpportunity[];
   examInfo?: ExamInfo;
+
   recessPeriods?: RecessPeriod[];
-  semesterStart: string;
-  semesterEnd: string;
+  
+  color: string;
+  
+  addedYear: number;
 }
 
 export interface TimelineEvent {
