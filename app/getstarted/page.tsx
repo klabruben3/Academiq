@@ -9,7 +9,7 @@ import {
 import { supabase } from "@/lib/supabase/client";
 import { useRouter } from "next/navigation";
 import { User } from "@supabase/supabase-js";
-import { useAuthContext } from "@/context";
+import { useAuthContext, useMediaQuery } from "@/context";
 
 /* ─── Icon set ─── */
 
@@ -1411,6 +1411,7 @@ function AuthModal({
 
     try {
       await signInWithGoogle();
+      await initialize();
     } finally {
       setIsContinuingToGoogle(false);
     }
@@ -1774,6 +1775,7 @@ export default function App() {
   const router = useRouter();
 
   const { user: authUser, isLoading: isAuthLoading } = useAuthContext();
+  const device = useMediaQuery();
 
   useEffect(() => {
     if (isAuthLoading) return;
@@ -1846,14 +1848,13 @@ export default function App() {
         userSelect: "none",
       }}
     >
-      <div className="fixed top-0 right-10 w-fit">
-        <img
-          width={900}
-          src="/logo-3d.png"
-          alt="Logo"
-        />
-        <div className="absolute inset-0 backdrop-blur-[1px] opacity-50" />
-      </div>
+      {/* 3d icon */}
+      {device === "desktop" && (
+        <div className="fixed top-0 right-10 w-fit">
+          <img width={900} src="/logo-3d.png" alt="Logo" />
+          <div className="absolute inset-0 backdrop-blur-[1px] opacity-50" />
+        </div>
+      )}
       {/* Grain layer */}
       <div
         style={{

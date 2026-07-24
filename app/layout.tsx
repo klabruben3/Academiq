@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import "./index.css";
-import { AuthProvider } from "@/context";
+import { AuthProvider, MediaQueryProvider } from "@/context";
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://academiq-nwu.vercel.app"),
@@ -77,7 +77,9 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className="min-h-full flex flex-col">
-        <AuthProvider>{children}</AuthProvider>
+        <AuthProvider>
+          <MediaQueryProvider>{children}</MediaQueryProvider>
+        </AuthProvider>
       </body>
     </html>
   );

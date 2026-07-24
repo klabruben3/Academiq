@@ -29,6 +29,7 @@ import { askAI } from "@/components/features/ai/actions/chat";
 import { uid } from "@/lib/helpers";
 import { compressForAI } from "@/tests/cleanText";
 import { signOut } from "@/app/getstarted/action";
+import { useAuthContext } from "@/context";
 
 type ViewId =
   | "dashboard"
@@ -74,6 +75,20 @@ export default function Academiq() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [typing, setTyping] = useState(false);
+  const [isSigningOut, setIsSigningOut] = useState(false);
+
+  const { initialize } = useAuthContext();
+
+  const handleSignOut = async () => {
+    setIsSigningOut(true);
+
+    try {
+      await signOut();
+      await initialize();
+    } finally {
+      setIsSigningOut(false);
+    }
+  };
 
   useEffect(() => {
     localStorage.setItem(SCORES_KEY, JSON.stringify(scores));
@@ -435,8 +450,11 @@ export default function Academiq() {
             </button>
 
             <div className="flex-1 flex justify-end items-end">
-              <button onClick={signOut} className="mt-auto rounded-xl border border-white/8 bg-white/4 px-2 py-1 cursor-pointer text-[10px] font-mono font-semibold text-white/80 hover:text-white active:scale-95 transition-transform duration-250">
-                Sign out
+              <button
+                onClick={handleSignOut}
+                className="mt-auto rounded-xl border border-white/8 bg-white/4 px-2 py-1 cursor-pointer text-[10px] font-mono font-semibold text-white/80 hover:text-white active:scale-95 transition-transform duration-250"
+              >
+                {!isSigningOut ? "Sign out" : "..."}
               </button>
             </div>
           </nav>

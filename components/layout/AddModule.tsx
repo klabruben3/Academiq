@@ -1,21 +1,8 @@
 "use client";
 
-import { useState, useRef, useEffect, useCallback } from "react";
+import { useState, useRef, useCallback } from "react";
 import type { Module, AssessmentComponent, AssessmentType } from "@/types";
-
-// ─── Responsive hook ───────────────────────────────────────────────────────
-
-function useWindowWidth() {
-  const [width, setWidth] = useState(() =>
-    typeof window !== "undefined" ? window.innerWidth : 1024,
-  );
-  useEffect(() => {
-    const handler = () => setWidth(window.innerWidth);
-    window.addEventListener("resize", handler, { passive: true });
-    return () => window.removeEventListener("resize", handler);
-  }, []);
-  return width;
-}
+import { useMediaQuery } from "@/context";
 
 // ─── Validation ────────────────────────────────────────────────────────────
 
@@ -1201,8 +1188,7 @@ const NWUModuleCard = ({
   onSelect: () => void;
 }) => {
   const [hovered, setHovered] = useState(false);
-  const w = useWindowWidth();
-  const isMobile = w < 600;
+  const device = useMediaQuery();
 
   return (
     <button
@@ -1222,10 +1208,10 @@ const NWUModuleCard = ({
       <div
         style={{
           display: "flex",
-          alignItems: isMobile ? "flex-start" : "center",
-          flexDirection: isMobile ? "column" : "row",
-          gap: isMobile ? 12 : 16,
-          padding: isMobile ? "16px" : "16px 20px",
+          alignItems: device === "mobile" ? "flex-start" : "center",
+          flexDirection: device === "mobile" ? "column" : "row",
+          gap: device === "mobile" ? 12 : 16,
+          padding: device === "mobile" ? "16px" : "16px 20px",
           backgroundColor: hovered ? "#111829" : "#0f1629",
           border: `1px solid ${hovered ? "rgba(99,102,241,0.3)" : "rgba(255,255,255,0.06)"}`,
           borderRadius: 14,
@@ -1242,8 +1228,8 @@ const NWUModuleCard = ({
             display: "flex",
             alignItems: "center",
             gap: 12,
-            width: isMobile ? "100%" : undefined,
-            flex: isMobile ? undefined : 1,
+            width: device === "mobile" ? "100%" : undefined,
+            flex: device === "mobile" ? undefined : 1,
             minWidth: 0,
           }}
         >
@@ -1308,7 +1294,7 @@ const NWUModuleCard = ({
                 lineHeight: 1.5,
                 overflow: "hidden",
                 textOverflow: "ellipsis",
-                whiteSpace: isMobile ? "normal" : "nowrap",
+                whiteSpace: device === "mobile" ? "normal" : "nowrap",
               }}
             >
               {mod.description}
@@ -1320,13 +1306,13 @@ const NWUModuleCard = ({
           style={{
             display: "flex",
             alignItems: "center",
-            justifyContent: isMobile ? "space-between" : "flex-end",
+            justifyContent: device === "mobile" ? "space-between" : "flex-end",
             gap: 16,
-            width: isMobile ? "100%" : undefined,
+            width: device === "mobile" ? "100%" : undefined,
             flexShrink: 0,
           }}
         >
-          <div style={{ textAlign: isMobile ? "left" : "right" }}>
+          <div style={{ textAlign: device === "mobile" ? "left" : "right" }}>
             <div
               style={{
                 color: "#3d4a62",
@@ -1402,8 +1388,7 @@ const ModuleEditor = ({
   );
   const [touchedFields, setTouchedFields] = useState<Set<string>>(new Set());
   const tabsRef = useRef<HTMLDivElement>(null);
-  const w = useWindowWidth();
-  const isMobile = w < 640;
+  const device = useMediaQuery();
 
   const update = useCallback(
     <K extends keyof Module>(field: K, value: Module[K]) => {
@@ -1461,7 +1446,7 @@ const ModuleEditor = ({
       return;
     }
     setValidationErrors([]);
-    setSaveState("saved");    
+    setSaveState("saved");
     setTimeout(() => setSaveState("idle"), 2600);
   };
 
@@ -1531,7 +1516,7 @@ const ModuleEditor = ({
           maxWidth: 860,
           margin: "0 auto",
           width: "100%",
-          padding: isMobile ? "24px 16px 80px" : "36px 24px 100px",
+          padding: device === "mobile" ? "24px 16px 80px" : "36px 24px 100px",
           display: "flex",
           flexDirection: "column",
           gap: 24,
@@ -1690,12 +1675,12 @@ const ModuleEditor = ({
                 onClick={() => setSection(s.id)}
                 style={{
                   position: "relative",
-                  padding: isMobile ? "7px 13px" : "7px 18px",
+                  padding: device === "mobile" ? "7px 13px" : "7px 18px",
                   borderRadius: 9,
                   border: "none",
                   cursor: "pointer",
                   fontFamily: "inherit",
-                  fontSize: isMobile ? 12.5 : 13,
+                  fontSize: device === "mobile" ? 12.5 : 13,
                   fontWeight: 500,
                   whiteSpace: "nowrap",
                   backgroundColor: section === s.id ? "#1e2540" : "transparent",
@@ -1749,7 +1734,7 @@ const ModuleEditor = ({
         {/* ── Section: Info ── */}
         {section === "info" && (
           <EditorCard title="Module Information">
-            <FieldGrid isMobile={isMobile}>
+            <FieldGrid isMobile={device === "mobile"}>
               <Field
                 label="Module Name"
                 required
@@ -1876,8 +1861,8 @@ const ModuleEditor = ({
                       key={c}
                       onClick={() => update("color", c)}
                       style={{
-                        width: isMobile ? 28 : 24,
-                        height: isMobile ? 28 : 24,
+                        width: device === "mobile" ? 28 : 24,
+                        height: device === "mobile" ? 28 : 24,
                         borderRadius: 6,
                         border: "none",
                         cursor: "pointer",
@@ -1897,8 +1882,8 @@ const ModuleEditor = ({
                     value={mod.color}
                     onChange={(e) => update("color", e.target.value)}
                     style={{
-                      width: isMobile ? 28 : 24,
-                      height: isMobile ? 28 : 24,
+                      width: device === "mobile" ? 28 : 24,
+                      height: device === "mobile" ? 28 : 24,
                       border: "none",
                       borderRadius: 6,
                       cursor: "pointer",
@@ -1915,7 +1900,7 @@ const ModuleEditor = ({
         {/* ── Section: Dates ── */}
         {section === "dates" && (
           <EditorCard title="Semester & Exam Dates">
-            <FieldGrid isMobile={isMobile}>
+            <FieldGrid isMobile={device === "mobile"}>
               <Field
                 label="Semester Start"
                 required
@@ -1957,7 +1942,7 @@ const ModuleEditor = ({
                       key={String(val)}
                       onClick={() => update("hasExam", val)}
                       style={{
-                        padding: isMobile ? "9px 22px" : "8px 20px",
+                        padding: device === "mobile" ? "9px 22px" : "8px 20px",
                         borderRadius: 9,
                         cursor: "pointer",
                         fontFamily: "inherit",
@@ -2015,7 +2000,7 @@ const ModuleEditor = ({
         {/* ── Section: Requirements ── */}
         {section === "requirements" && (
           <EditorCard title="Pass Requirements">
-            <FieldGrid isMobile={isMobile}>
+            <FieldGrid isMobile={device === "mobile"}>
               <Field label="Min Participation %" hint="For exam admission">
                 <EInput
                   type="number"
@@ -2113,7 +2098,7 @@ const ModuleEditor = ({
                 onRemove={() => removeAssessment(idx)}
                 inputSt={inputSt}
                 isBlank={isBlank}
-                isMobile={isMobile}
+                isMobile={device === "mobile"}
               />
             ))}
             {mod.assessments.length === 0 && (
@@ -2138,7 +2123,7 @@ const ModuleEditor = ({
                 justifyContent: "center",
                 gap: 8,
                 width: "100%",
-                padding: isMobile ? 15 : 13,
+                padding: device === "mobile" ? 15 : 13,
                 backgroundColor: "transparent",
                 border: "1px dashed rgba(99,102,241,0.22)",
                 borderRadius: 12,
@@ -2166,7 +2151,7 @@ const ModuleEditor = ({
 
         <div
           style={{
-            padding: isMobile ? "0 16px" : "0 24px",
+            padding: device === "mobile" ? "0 16px" : "0 24px",
             display: "flex",
             alignItems: "center",
             justifyContent: "space-between",
@@ -2178,7 +2163,7 @@ const ModuleEditor = ({
             style={{
               display: "flex",
               alignItems: "center",
-              gap: isMobile ? 8 : 12,
+              gap: device === "mobile" ? 8 : 12,
               minWidth: 0,
               flex: 1,
             }}
@@ -2204,14 +2189,14 @@ const ModuleEditor = ({
               onMouseLeave={(e) => (e.currentTarget.style.color = "#6b7a99")}
             >
               <BackIcon />
-              {!isMobile && <span>Back</span>}
+              <span>Back</span>
             </button>
           </div>
 
           <button
             onClick={handleSave}
             style={{
-              padding: isMobile ? "6px 14px" : "7px 18px",
+              padding: device === "mobile" ? "6px 14px" : "7px 18px",
               flexShrink: 0,
               backgroundColor:
                 saveState === "saved"
@@ -2717,8 +2702,7 @@ const EmptyState = ({
   onNWUClick: () => void;
   onBlankClick: () => void;
 }) => {
-  const w = useWindowWidth();
-  const isMobile = w < 640;
+  const device = useMediaQuery();
 
   return (
     <div
@@ -2742,11 +2726,11 @@ const EmptyState = ({
           position: "relative",
           maxWidth: 920,
           margin: "0 auto",
-          padding: isMobile ? "36px 16px 72px" : "52px 28px 80px",
+          padding: device === "mobile" ? "36px 16px 72px" : "52px 28px 80px",
         }}
       >
         {/* Heading */}
-        <div style={{ marginBottom: isMobile ? 40 : 52 }}>
+        <div style={{ marginBottom: device === "mobile" ? 40 : 52 }}>
           <h1
             style={{
               color: "#f0f4ff",
@@ -2762,7 +2746,7 @@ const EmptyState = ({
           <p
             style={{
               color: "#6b7a99",
-              fontSize: isMobile ? 14 : 14.5,
+              fontSize: device === "mobile" ? 14 : 14.5,
               lineHeight: 1.7,
               maxWidth: 400,
               margin: 0,
@@ -2778,14 +2762,14 @@ const EmptyState = ({
             display: "flex",
             flexDirection: "column",
             alignItems: "center",
-            marginBottom: isMobile ? 40 : 52,
+            marginBottom: device === "mobile" ? 40 : 52,
           }}
         >
           <div
             style={{
               width: "100%",
-              maxWidth: isMobile ? 240 : 300,
-              height: isMobile ? 150 : 180,
+              maxWidth: device === "mobile" ? 240 : 300,
+              height: device === "mobile" ? 150 : 180,
             }}
           >
             <BookStackIllustration />
@@ -2801,10 +2785,11 @@ const EmptyState = ({
         <div
           style={{
             display: "grid",
-            gridTemplateColumns: isMobile
-              ? "1fr"
-              : "repeat(auto-fit, minmax(250px, 1fr))",
-            gap: isMobile ? 12 : 14,
+            gridTemplateColumns:
+              device === "mobile"
+                ? "1fr"
+                : "repeat(auto-fit, minmax(250px, 1fr))",
+            gap: device === "mobile" ? 12 : 14,
             alignItems: "stretch",
           }}
         >
