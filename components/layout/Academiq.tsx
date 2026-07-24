@@ -28,6 +28,7 @@ import { ModelMessage, ToolCallPart, ToolResultPart } from "ai";
 import { askAI } from "@/components/features/ai/actions/chat";
 import { uid } from "@/lib/helpers";
 import { compressForAI } from "@/tests/cleanText";
+import { signOut } from "@/app/getstarted/action";
 
 type ViewId =
   | "dashboard"
@@ -339,7 +340,7 @@ export default function Academiq() {
           </div>
 
           {/* Nav */}
-          <nav className="p-3 space-y-0.5 flex-1">
+          <nav className="p-3 space-y-0.5 flex-1 flex flex-col">
             {NAV_ITEMS.map((item) => {
               const Icon = item.icon;
               const active = view === item.id;
@@ -432,6 +433,12 @@ export default function Academiq() {
                 />
               )}
             </button>
+
+            <div className="flex-1 flex justify-end items-end">
+              <button onClick={signOut} className="mt-auto rounded-xl border border-white/8 bg-white/4 px-2 py-1 cursor-pointer text-[10px] font-mono font-semibold text-white/80 hover:text-white active:scale-95 transition-transform duration-250">
+                Sign out
+              </button>
+            </div>
           </nav>
 
           {/* Footer */}

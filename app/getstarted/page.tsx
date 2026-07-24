@@ -1330,7 +1330,9 @@ function AuthModal({
   const [newPasswordV1, setNewPasswordV1] = useState("");
   const [newPasswordV2, setNewPasswordV2] = useState("");
   const [includeSignIn, setIncludeSignIn] = useState(true);
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isCreatingAccount, setIsCreatingAccount] = useState(false);
+  const [isContinuingToGoogle, setIsContinuingToGoogle] = useState(false);
+  const [isSigningIn, setIsSigningIn] = useState(false);
 
   //   For Stats
   const [university, setUniversity] = useState("");
@@ -1403,7 +1405,7 @@ function AuthModal({
 
   const handleCreateAccount = async () => {
     if (blockRegister) return;
-    setIsSubmitting(true);
+    setIsCreatingAccount(true);
 
     try {
       await signUpWithPassword({
@@ -1417,29 +1419,29 @@ function AuthModal({
       });
       await initialize();
     } finally {
-      setIsSubmitting(false);
+      setIsCreatingAccount(false);
     }
   };
 
   const handleSignInWithPassword = async () => {
     if (!email.trim() || !currentPassword.trim()) return;
-    setIsSubmitting(true);
+    setIsSigningIn(true);
 
     try {
       await signInWithPassword(email, currentPassword);
       await initialize();
     } finally {
-      setIsSubmitting(false);
+      setIsSigningIn(false);
     }
   };
 
   const handleSignInWithGoogle = async () => {
-    setIsSubmitting(true);
+    setIsContinuingToGoogle(true);
 
     try {
       await signInWithGoogle();
     } finally {
-      setIsSubmitting(false);
+      setIsContinuingToGoogle(false);
     }
   };
 
@@ -1593,20 +1595,20 @@ function AuthModal({
                 fontSize: 14,
                 marginBottom: 10,
                 background:
-                  !email.trim() || !currentPassword.trim() || isSubmitting
+                  !email.trim() || !currentPassword.trim() || isSigningIn
                     ? "gray"
                     : "linear-gradient(135deg, #4338ca 0%, #6366f1 55%, #818cf8 100%)",
                 color:
-                  !email.trim() || !currentPassword.trim() || isSubmitting
+                  !email.trim() || !currentPassword.trim() || isSigningIn
                     ? "black"
                     : "white",
                 cursor:
-                  !email.trim() || !currentPassword.trim() || isSubmitting
+                  !email.trim() || !currentPassword.trim() || isSigningIn
                     ? "not-allowed"
                     : "pointer",
               }}
             >
-              {!isSubmitting ? "Sign In" : "Signing in..."}
+              {!isSigningIn ? "Sign In" : "Signing in..."}
             </button>
 
             <button
@@ -1637,7 +1639,7 @@ function AuthModal({
               }}
             >
               <IconGoogle size={16} />
-              {!isSubmitting ? "Continue with Google" : "Continuing..."}
+              {!isContinuingToGoogle ? "Continue with Google" : "Continuing..."}
             </button>
 
             <div style={{ textAlign: "center", fontSize: 13, color: MUTED }}>
@@ -1756,16 +1758,18 @@ function AuthModal({
                 textAlign: "center",
                 fontSize: 14,
                 background:
-                  blockRegister || isSubmitting
+                  blockRegister || isCreatingAccount
                     ? "gray"
                     : "linear-gradient(135deg, #4338ca 0%, #6366f1 55%, #818cf8 100%)",
-                color: blockRegister || isSubmitting ? "black" : "white",
+                color: blockRegister || isCreatingAccount ? "black" : "white",
                 cursor:
-                  blockRegister || isSubmitting ? "not-allowed" : "pointer",
+                  blockRegister || isCreatingAccount
+                    ? "not-allowed"
+                    : "pointer",
                 marginBottom: 10,
               }}
             >
-              {!isSubmitting ? "Create Account" : "Creating..."}
+              {!isCreatingAccount ? "Create Account" : "Creating..."}
             </button>
 
             <div style={{ textAlign: "center", fontSize: 13, color: MUTED }}>
