@@ -303,36 +303,7 @@ function AcademiqLogo({ small = false }: { small?: boolean }) {
   const size = small ? 28 : 32;
   return (
     <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-      <div
-        style={{
-          width: size,
-          height: size,
-          borderRadius: small ? 8 : 10,
-          background:
-            "linear-gradient(135deg, #4338CA 0%, #6366F1 60%, #22D3EE 100%)",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          boxShadow:
-            "0 4px 14px rgba(67,56,202,0.45), 0 0 24px rgba(99,102,241,0.18)",
-          flexShrink: 0,
-        }}
-      >
-        <svg
-          width={size * 0.55}
-          height={size * 0.55}
-          viewBox="0 0 18 18"
-          fill="none"
-        >
-          <path d="M9 2L2 14h14L9 2z" fill="white" opacity="0.9" />
-          <path
-            d="M5.5 10.5h7"
-            stroke="white"
-            strokeWidth="1.5"
-            strokeLinecap="round"
-          />
-        </svg>
-      </div>
+      <img width={size} height={size} src="/logo.png" alt="Logo" />
       <span
         className="font-display"
         style={{
@@ -1875,6 +1846,14 @@ export default function App() {
         userSelect: "none",
       }}
     >
+      <div className="fixed top-0 right-10 w-fit">
+        <img
+          width={900}
+          src="/logo-3d.png"
+          alt="Logo"
+        />
+        <div className="absolute inset-0 backdrop-blur-[1px] opacity-50" />
+      </div>
       {/* Grain layer */}
       <div
         style={{
@@ -2020,7 +1999,7 @@ export default function App() {
               fontSize: "clamp(40px, 6vw, 72px)",
               fontWeight: 900,
               color: FG,
-              textAlign: "center",
+              textAlign: "start",
               letterSpacing: "-0.04em",
               lineHeight: 1.05,
               margin: "0 0 20px",
@@ -2046,9 +2025,9 @@ export default function App() {
             style={{
               fontSize: "clamp(15px, 2vw, 18px)",
               color: MUTED,
-              textAlign: "center",
+              textAlign: "start",
               maxWidth: 540,
-              margin: "0 auto 36px",
+              margin: "0 0 36px",
               lineHeight: 1.65,
             }}
           >
